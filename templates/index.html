@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marks Entry System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h1 {
+            color: #1a73e8;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+        input[type="text"], input[type="file"], select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box; /* Ensures padding doesn't affect width */
+        }
+        input[type="submit"] {
+            width: 100%;
+            padding: 1rem;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        input[type="submit"]:hover {
+            background-color: #1557b0;
+        }
+        .note {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+        .step {
+            background: #e8f0fe;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #1a73e8;
+        }
+        .step-title {
+            font-weight: bold;
+            color: #1a73e8;
+            margin-bottom: 5px;
+        }
+        .error {
+            background-color: #fdecea;
+            color: #b00020;
+            padding: 0.75rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #b00020;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Marks Entry Automation</h1>
+        
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            
+            <div class="step">
+                <div class="step-title">Step 1: Exam Details</div>
+                <div class="form-group">
+                    <label for="exam_type">Select Objective Set:</label>
+                    <select name="exam_type" id="exam_type" required>
+                        <option value="Objective-1">Objective-1</option>
+                        <option value="Objective-2">Objective-2</option>
+                    </select>
+                    <div class="note">This determines which sheet/tab in Excel to update.</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">Step 2: Roll Number Schedule</div>
+                <div class="form-group">
+                    <label for="start_roll_no">Starting Roll Number:</label>
+                    <input type="text" name="start_roll_no" id="start_roll_no" placeholder="e.g. 24WH1A0501" required>
+                </div>
+                <div class="form-group">
+                    <label for="end_roll_no">Ending Roll Number:</label>
+                    <input type="text" name="end_roll_no" id="end_roll_no" placeholder="e.g. 24WH1A0560" required>
+                </div>
+                <div class="form-group">
+                    <label for="lateral_entries">Lateral Entry / Extra Roll Numbers (Optional):</label>
+                    <input type="text" name="lateral_entries" id="lateral_entries" placeholder="e.g. 25WH5A0501, 25WH5A0502">
+                    <div class="note">Comma separated. These will be added AFTER the main range.</div>
+                </div>
+                <div class="form-group">
+                    <label for="absentees">Absent Roll Numbers (Optional):</label>
+                    <input type="text" name="absentees" id="absentees" placeholder="e.g. 24WH1A0504, 24WH1A0512">
+                    <div class="note">Comma separated. These rows will be marked as 0.</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">Step 3: Upload Files</div>
+                <div class="form-group">
+                    <label for="pages_per_student">Pages per Student (Images):</label>
+                    <select name="pages_per_student" id="pages_per_student">
+                        <option value="1">1 Page (Single Side)</option>
+                        <option value="2">2 Pages (Front & Back)</option>
+                    </select>
+                    <div class="note">If 2 Pages, ensure images are sorted: Student1-Page1, Student1-Page2, Student2-Page1...</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="image_files">Upload Scanned Answer Sheets:</label>
+                    <input type="file" name="image_files" id="image_files" accept="image/*" multiple required>
+                    <div class="note">
+                        <strong>Random Order Support:</strong> If you rename your files to include the Roll Number (e.g., <code>24WH1A0501.jpg</code>), you can upload them in any order! <br>
+                        Otherwise, files will be processed in alphabetical/numerical order (1.jpg, 2.jpg...).
+                    </div>
+                </div>
+            </div>
+
+            <input type="submit" value="Process and Update Excel">
+        </form>
+    </div>
+</body>
+</html>

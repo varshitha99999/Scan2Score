@@ -1,0 +1,8 @@
+Flask
+pandas
+openpyxl
+opencv-python
+scikit-image
+numpy
+werkzeug
+xlrd
