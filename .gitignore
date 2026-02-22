@@ -1,0 +1,17 @@
+# Virtual Environment
+venv/
+__pycache__/
+
+# Python
+*.pyc
+*.pyd
+*.dll
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data & outputs
+*.xlsx
+*.csv
+output/
+scans/
