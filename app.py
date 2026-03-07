@@ -85,11 +85,11 @@ def generate_roll_numbers(start, end):
     width = len(num_start)
 
     if start_n > end_n:
-        return [start]
+        return [start.upper()]
 
     rolls = []
     for i in range(start_n, end_n + 1):
-        rolls.append(f"{prefix_start}{str(i).zfill(width)}")
+        rolls.append(f"{prefix_start.upper()}{str(i).zfill(width)}")
     return rolls
 
 def update_excel_com_batch(file_path, student_data, exam_type):
@@ -196,7 +196,7 @@ def update_excel_com_batch(file_path, student_data, exam_type):
         for r in range(start_row, max_row + 1):
             val = ws.Cells(r, roll_no_col).Value
             if val:
-                existing_rolls[str(val).strip()] = r
+                existing_rolls[str(val).strip().upper()] = r
             else:
                 if first_empty_row == -1:
                     first_empty_row = r
@@ -226,15 +226,15 @@ def update_excel_com_batch(file_path, student_data, exam_type):
             
             # Write Marks
             if is_absent:
-                # Write 0s
+                # Leave empty
                 for q_num in range(1, 21):
                     if q_num in q_cols:
                         cell = ws.Cells(target_row, q_cols[q_num])
                         if not (ws.ProtectContents and cell.Locked):
-                            cell.Value = 0
+                            cell.Value = "" # Clear cell
                 
-                # Write Total 0
-                computed_total = 0
+                # Clear Total as well
+                computed_total = ""
             else:
                 # Write Marks
                 for q_num in range(1, 21):
@@ -302,7 +302,7 @@ def upload():
         # Parse Absentees
         absentees_set = set()
         if absentees_str:
-            parts = [x.strip() for x in absentees_str.split(',')]
+            parts = [x.strip().upper() for x in absentees_str.split(',')]
             for p in parts:
                 if p:
                     absentees_set.add(p)
@@ -312,7 +312,7 @@ def upload():
         
         # Append Lateral Entries
         if lateral_str:
-            parts = [x.strip() for x in lateral_str.split(',')]
+            parts = [x.strip().upper() for x in lateral_str.split(',')]
             for p in parts:
                 if p and p not in all_rolls:
                     all_rolls.append(p)
@@ -324,18 +324,21 @@ def upload():
         # Filter valid images
         valid_images = [img for img in image_files if img.filename != '']
         
-        if not valid_images:
-            return render_template('index.html', error="Please upload at least one image file.")
-        
-        # Check expected images
-        expected_images = len(present_rolls) * pages_per_student
-        
-        if expected_images != len(valid_images):
-            msg = (
-                f"Expected {expected_images} image(s) for {len(present_rolls)} present "
-                f"student(s) with {pages_per_student} page(s) each, but got {len(valid_images)}."
-            )
-            return render_template('index.html', error=msg)
+        # If there are present students, we must have images only for them.
+        # If everyone is absent, we do NOT require any uploads and will leave marks empty.
+        if present_rolls:
+            if not valid_images:
+                return render_template('index.html', error="Upload answer sheets only for PRESENT students (absentees need no upload).")
+            
+            # Check expected images (only for present students)
+            expected_images = len(present_rolls) * pages_per_student
+            
+            if expected_images != len(valid_images):
+                msg = (
+                    f"Expected {expected_images} image(s) for {len(present_rolls)} present "
+                    f"student(s) with {pages_per_student} page(s) each, but got {len(valid_images)}."
+                )
+                return render_template('index.html', error=msg)
         
         # Save Images
         saved_image_paths = []
@@ -385,9 +388,10 @@ def upload():
         output_filename = f"updated_marks_{exam_type}.xlsx"
         output_path = os.path.join(app.config['Result_FOLDER'], output_filename)
         
-        # If the result file does not exist yet, create it from the master template.
-        # If it already exists, we will append new rows to it.
-        if not os.path.exists(output_path):
+        # If the result file does not exist yet, OR user checked "clear_existing", 
+        # create it from the master template.
+        clear_existing = request.form.get('clear_existing') == 'on'
+        if not os.path.exists(output_path) or clear_existing:
             shutil.copy2(master_template_path, output_path)
         
         # Processing Loop

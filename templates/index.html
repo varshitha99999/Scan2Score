@@ -3,156 +3,387 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marks Entry System</title>
+    <title>Marks Entry Automation</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-hover: #1d4ed8;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --error: #ef4444;
+            --accent: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.4;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
-            margin: 0;
+            padding: 20px;
         }
+
         .container {
-            background-color: white;
+            background-color: var(--card-bg);
             padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 500px;
+            max-width: 900px; /* Increased width for side-by-side layout */
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
         }
-        h1 {
-            color: #1a73e8;
+
+        @media (min-width: 800px) {
+            .container {
+                grid-template-columns: 320px 1fr; /* Sidebar for guide, main for form */
+            }
+        }
+
+        /* Guide Sidebar */
+        .guide-sidebar {
+            background-color: var(--primary-light);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid #dbeafe;
+        }
+
+        .guide-sidebar h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .guide-step {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 1.25rem;
+        }
+
+        .guide-step i {
+            color: var(--primary);
+            font-size: 1.1rem;
+            margin-top: 2px;
+            width: 20px;
             text-align: center;
+        }
+
+        .guide-step div p:first-child {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .guide-step div p:last-child {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Form Area */
+        header {
             margin-bottom: 1.5rem;
         }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        header h1 i { color: var(--primary); }
+
+        .error-toast {
+            background-color: #fef2f2;
+            border-left: 4px solid var(--error);
+            color: #991b1b;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .full-width { grid-column: span 2; }
+
+        .step-title-inline {
+            grid-column: span 2;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+            margin-top: 0.5rem;
+            padding-bottom: 4px;
+            border-bottom: 2px solid var(--primary-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.75rem;
         }
+
         label {
             display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
-            font-weight: 500;
+            margin-bottom: 0.4rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
         }
-        input[type="text"], input[type="file"], select {
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: all 0.2s;
+            background-color: #fff;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        input[type="file"] {
             width: 100%;
             padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box; /* Ensures padding doesn't affect width */
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background-color: #fafafa;
         }
-        input[type="submit"] {
-            width: 100%;
-            padding: 1rem;
-            background-color: #1a73e8;
+
+        input[type="file"]:hover {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        .btn-submit {
+            grid-column: span 2;
+            margin-top: 1rem;
+            padding: 0.9rem;
+            background-color: var(--primary);
             color: white;
             border: none;
-            border-radius: 5px;
-            cursor: pointer;
+            border-radius: 10px;
             font-size: 1rem;
-            font-weight: bold;
-            transition: background-color 0.2s;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
         }
-        input[type="submit"]:hover {
-            background-color: #1557b0;
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
         }
-        .note {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 0.25rem;
+
+        .btn-submit:active { transform: scale(0.98); }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
         }
-        .step {
-            background: #e8f0fe;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            border-left: 4px solid #1a73e8;
-        }
-        .step-title {
-            font-weight: bold;
-            color: #1a73e8;
-            margin-bottom: 5px;
-        }
-        .error {
-            background-color: #fdecea;
-            color: #b00020;
-            padding: 0.75rem;
-            border-radius: 5px;
-            margin-bottom: 1rem;
-            border-left: 4px solid #b00020;
-            font-size: 0.9rem;
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .btn-submit.loading .spinner { display: block; }
+        .btn-submit.loading span { display: none; }
+        .btn-submit.loading { pointer-events: none; opacity: 0.8; }
+
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
+            .step-title-inline { grid-column: span 1; }
+            .btn-submit { grid-column: span 1; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Marks Entry Automation</h1>
-        
-        {% if error %}
-        <div class="error">{{ error }}</div>
-        {% endif %}
-        
-        <form action="/upload" method="post" enctype="multipart/form-data">
+        <!-- Compact Sidebar Guide -->
+        <aside class="guide-sidebar">
+            <h2><i class="fa-solid fa-wand-magic-sparkles"></i> Quick Start</h2>
             
-            <div class="step">
-                <div class="step-title">Step 1: Exam Details</div>
-                <div class="form-group">
-                    <label for="exam_type">Select Objective Set:</label>
-                    <select name="exam_type" id="exam_type" required>
-                        <option value="Objective-1">Objective-1</option>
-                        <option value="Objective-2">Objective-2</option>
-                    </select>
-                    <div class="note">This determines which sheet/tab in Excel to update.</div>
+            <div class="guide-step">
+                <i class="fa-solid fa-list-check"></i>
+                <div>
+                    <p>Choose Objective</p>
+                    <p>Select the exam set to update.</p>
                 </div>
             </div>
 
-            <div class="step">
-                <div class="step-title">Step 2: Roll Number Schedule</div>
-                <div class="form-group">
-                    <label for="start_roll_no">Starting Roll Number:</label>
-                    <input type="text" name="start_roll_no" id="start_roll_no" placeholder="e.g. 24WH1A0501" required>
-                </div>
-                <div class="form-group">
-                    <label for="end_roll_no">Ending Roll Number:</label>
-                    <input type="text" name="end_roll_no" id="end_roll_no" placeholder="e.g. 24WH1A0560" required>
-                </div>
-                <div class="form-group">
-                    <label for="lateral_entries">Lateral Entry / Extra Roll Numbers (Optional):</label>
-                    <input type="text" name="lateral_entries" id="lateral_entries" placeholder="e.g. 25WH5A0501, 25WH5A0502">
-                    <div class="note">Comma separated. These will be added AFTER the main range.</div>
-                </div>
-                <div class="form-group">
-                    <label for="absentees">Absent Roll Numbers (Optional):</label>
-                    <input type="text" name="absentees" id="absentees" placeholder="e.g. 24WH1A0504, 24WH1A0512">
-                    <div class="note">Comma separated. These rows will be marked as 0.</div>
+            <div class="guide-step">
+                <i class="fa-solid fa-id-card"></i>
+                <div>
+                    <p>Roll Range</p>
+                    <p>Enter first and last roll numbers.</p>
                 </div>
             </div>
 
-            <div class="step">
-                <div class="step-title">Step 3: Upload Files</div>
-                <div class="form-group">
-                    <label for="pages_per_student">Pages per Student (Images):</label>
-                    <select name="pages_per_student" id="pages_per_student">
-                        <option value="1">1 Page (Single Side)</option>
-                        <option value="2">2 Pages (Front & Back)</option>
-                    </select>
-                    <div class="note">If 2 Pages, ensure images are sorted: Student1-Page1, Student1-Page2, Student2-Page1...</div>
+            <div class="guide-step">
+                <i class="fa-solid fa-user-slash"></i>
+                <div>
+                    <p>Mark Absentees</p>
+                    <p>Type roll numbers separated by comma.</p>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label for="image_files">Upload Scanned Answer Sheets:</label>
-                    <input type="file" name="image_files" id="image_files" accept="image/*" multiple required>
-                    <div class="note">
-                        <strong>Random Order Support:</strong> If you rename your files to include the Roll Number (e.g., <code>24WH1A0501.jpg</code>), you can upload them in any order! <br>
-                        Otherwise, files will be processed in alphabetical/numerical order (1.jpg, 2.jpg...).
+            <div class="guide-step">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <div>
+                    <p>Upload Images</p>
+                    <p>Upload ONLY present student sheets.</p>
+                </div>
+            </div>
+
+            <div class="guide-step" style="background: #fff; padding: 10px; border-radius: 10px; border: 1px dashed var(--accent); margin-top: 1rem;">
+                <i class="fa-solid fa-lightbulb" style="color: var(--accent);"></i>
+                <div>
+                    <p style="color: var(--accent);">Pro Tip</p>
+                    <p>Rename files to <strong>RollNo.jpg</strong> to upload in any order!</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Form Area -->
+        <main>
+            <header>
+                <h1><i class="fa-solid fa-file-invoice"></i> Marks Entry</h1>
+            </header>
+            
+            {% if error %}
+            <div class="error-toast">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>{{ error }}</div>
+            </div>
+            {% endif %}
+            
+            <form action="/upload" method="post" enctype="multipart/form-data" id="mainForm">
+                <div class="form-grid">
+                    
+                    <div class="step-title-inline"><i class="fa-solid fa-gear"></i> Exam Setup</div>
+                    
+                    <div class="form-group">
+                        <label for="exam_type">Objective Set</label>
+                        <select name="exam_type" id="exam_type" required>
+                            <option value="Objective-1">Objective-1</option>
+                            <option value="Objective-2">Objective-2</option>
+                        </select>
                     </div>
-                </div>
-            </div>
 
-            <input type="submit" value="Process and Update Excel">
-        </form>
+                    <div class="form-group">
+                        <label for="pages_per_student">Pages per Student</label>
+                        <select name="pages_per_student" id="pages_per_student">
+                            <option value="1">Single Side (1)</option>
+                            <option value="2">Front & Back (2)</option>
+                        </select>
+                    </div>
+
+                    <div class="step-title-inline"><i class="fa-solid fa-users"></i> Students</div>
+
+                    <div class="form-group">
+                        <label for="start_roll_no">Starting Roll No</label>
+                        <input type="text" name="start_roll_no" id="start_roll_no" placeholder="e.g. 24WH1A0501" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="end_roll_no">Ending Roll No</label>
+                        <input type="text" name="end_roll_no" id="end_roll_no" placeholder="e.g. 24WH1A0560" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lateral_entries">Lateral Entry (Optional)</label>
+                        <input type="text" name="lateral_entries" id="lateral_entries" placeholder="25WH5A0501, ...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="absentees">Absentees (Optional)</label>
+                        <input type="text" name="absentees" id="absentees" placeholder="24WH1A0504, ...">
+                    </div>
+
+                    <div class="form-group full-width" style="display: flex; align-items: center; gap: 10px; background: #fffbeb; padding: 10px; border-radius: 8px; border: 1px solid #fef3c7;">
+                        <input type="checkbox" name="clear_existing" id="clear_existing" style="width: auto;">
+                        <label for="clear_existing" style="margin-bottom: 0; color: #92400e; font-size: 0.8rem;">
+                            <strong>Clear existing records:</strong> Check this to remove old students from the Excel file and start fresh.
+                        </label>
+                    </div>
+
+                    <div class="step-title-inline"><i class="fa-solid fa-images"></i> Answer Sheets</div>
+
+                    <div class="form-group full-width">
+                        <input type="file" name="image_files" id="image_files" accept="image/*" multiple required>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <div class="spinner"></div>
+                        <span>Process Batch</span>
+                    </button>
+                </div>
+            </form>
+        </main>
     </div>
+
+    <script>
+        document.getElementById('mainForm').addEventListener('submit', function() {
+            const btn = document.getElementById('submitBtn');
+            btn.classList.add('loading');
+        });
+    </script>
 </body>
 </html>
