@@ -21,7 +21,7 @@ users = {
 }
 
 # Replace with your actual Gemini API Key
-GEMINI_API_KEY = "AIzaSyCt18FQy9jkHYwbmr0dbbAzu-0i4wk4Ilc"
+GEMINI_API_KEY = ""
 
 @app.route('/')
 def index():
