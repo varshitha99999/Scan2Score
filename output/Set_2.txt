@@ -1,0 +1,39 @@
+QUESTION PAPER - SET 2
+==============================
+
+SECTION 1: CHOOSE THE CORRECT ANSWER
+------------------------------------
+1. What is the mean of the data?
+   A) Arithmetic mean
+   B) Median
+   C) Range
+   D) Mode
+
+2. Probability value lies between?
+   A) 1 and 10
+   B) Any real number
+   C) 0 and 1
+   D) -1 and 1
+
+3. Which matrix has all diagonal elements as 1?
+   A) Square matrix
+   B) Zero matrix
+   C) Identity matrix
+   D) Null matrix
+
+SECTION 2: MATCH THE FOLLOWING
+------------------------------
+Q1. Match the following:
+   A. Mean                 1. Most frequent
+   B. Median               2. Difference between max and min
+   C. Mode                 3. Average
+   D. Range                4. Middle value
+
+SECTION 3: FILL IN THE BLANKS
+------------------------------
+1. The square root of variance is called
+   Answer: ____________________
+
+2. A hypothesis with no difference is called
+   Answer: ____________________
+

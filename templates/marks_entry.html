@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Marks Entry - Scan2Score{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Marks Entry</h2>
+        <div class="card mb-4">
+            <div class="card-body text-center py-5">
+                <!-- Using a simple icon representation if bootstrap icons aren't loaded, or just text -->
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📤</div>
+                <h4 class="mt-3">Upload Scanned Answer Sheets</h4>
+                <p class="text-muted">Upload PDF or Images of student answer sheets to automatically score them.</p>
+                <button class="btn btn-primary btn-lg mt-2">Upload Files</button>
+            </div>
+        </div>
+        
+        <h4 class="mb-3">Manual Entry</h4>
+        <div class="card">
+            <div class="card-body">
+                <form>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Student ID</label>
+                            <input type="text" class="form-control" placeholder="Enter Hall Ticket No">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Subject</label>
+                            <select class="form-select">
+                                <option>Select Subject</option>
+                                <option>Mathematics</option>
+                                <option>Physics</option>
+                                <option>Computer Science</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Marks Obtained</label>
+                            <input type="number" class="form-control" placeholder="0">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Save Marks</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

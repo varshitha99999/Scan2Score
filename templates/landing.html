@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row align-items-center" style="min-height: 60vh;">
+    <div class="col-md-6">
+        <h1 class="display-4 fw-bold mb-4">Welcome to <span class="text-primary">Scan2Score</span></h1>
+        <p class="lead mb-4">
+            Automated Question Paper Generation and Marks Management System.
+            Simplify your examination process with AI-powered tools.
+        </p>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+            {% if not session.get('user_id') %}
+                <a href="/login" class="btn btn-primary btn-lg px-4 me-md-2">Login to Continue</a>
+            {% else %}
+                {% if session.get('user_type') == 'faculty' %}
+                    <a href="/generate_paper" class="btn btn-success btn-lg px-4">Generate Paper</a>
+                {% else %}
+                    <a href="/student_dashboard" class="btn btn-info btn-lg px-4">View Dashboard</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6 text-center">
+        <!-- Placeholder for a hero image or illustration -->
+        <div class="p-5 bg-light rounded-3 shadow-sm">
+            <h3>🎓 Smart Examination</h3>
+            <p>AI-driven Question Paper Generation</p>
+            <p>Instant Distractor Creation</p>
+            <p>Automated Formatting</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

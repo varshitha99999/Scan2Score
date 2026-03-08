@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                <ul class="nav nav-tabs card-header-tabs w-100 justify-content-center" id="loginTab" role="tablist">
+                    <li class="nav-item" role="presentation" style="flex: 1; text-align: center;">
+                        <button class="nav-link active w-100 fw-bold" id="faculty-tab" data-bs-toggle="tab" data-bs-target="#faculty" type="button" role="tab">Faculty Login</button>
+                    </li>
+                    <li class="nav-item" role="presentation" style="flex: 1; text-align: center;">
+                        <button class="nav-link w-100 fw-bold" id="student-tab" data-bs-toggle="tab" data-bs-target="#student" type="button" role="tab">Student Login</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body p-4">
+                <div class="tab-content" id="loginTabContent">
+                    
+                    <!-- Faculty Login Form -->
+                    <div class="tab-pane fade show active" id="faculty" role="tabpanel">
+                        <form action="/login" method="POST">
+                            <input type="hidden" name="role" value="faculty">
+                            <div class="mb-3">
+                                <label class="form-label">Username / Email</label>
+                                <input type="text" name="username" class="form-control" required placeholder="admin">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control" required placeholder="admin">
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">Login as Faculty</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Student Login Form -->
+                    <div class="tab-pane fade" id="student" role="tabpanel">
+                        <form action="/login" method="POST">
+                            <input type="hidden" name="role" value="student">
+                            <div class="mb-3">
+                                <label class="form-label">Hall Ticket Number</label>
+                                <input type="text" name="username" class="form-control" required placeholder="Student ID">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control" required placeholder="Password">
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-info text-white">Login as Student</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+                
+                {% if error %}
+                <div class="alert alert-danger mt-3 mb-0">
+                    {{ error }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

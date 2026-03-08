@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Answer Sheet | Scan2Score</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(120deg, #1d2671, #c33764);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        header {
+            padding: 20px 40px;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: rgba(0,0,0,0.35);
+            padding: 30px;
+            border-radius: 16px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+        }
+
+        input[type="file"] {
+            background: #fff;
+        }
+
+        button {
+            margin-top: 25px;
+            width: 100%;
+            padding: 12px;
+            border-radius: 25px;
+            border: none;
+            background: #fff;
+            color: #1d2671;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        img {
+            max-width: 100%;
+            margin-top: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>Upload Answer Sheet</header>
+
+<div class="container">
+
+    <label>Subject</label>
+    <input type="text" placeholder="e.g. Data Structures">
+
+    <label>Total Marks</label>
+    <input type="number" placeholder="e.g. 20">
+
+    <label>Number of Questions</label>
+    <input type="number" placeholder="e.g. 5">
+
+    <label>Select Answer Sheet</label>
+    <input type="file" id="fileInput" accept=".jpg,.png,.jpeg,.pdf" onchange="previewImage()">
+
+    <img id="preview">
+
+    <button onclick="startProcessing()">Upload & Evaluate</button>
+</div>
+
+<script>
+    function previewImage() {
+        const file = document.getElementById("fileInput").files[0];
+        if (!file || file.type === "application/pdf") return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById("preview");
+            img.src = e.target.result;
+            img.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function startProcessing() {
+        if (!document.getElementById("fileInput").value) {
+            alert("Please upload an answer sheet");
+            return;
+        }
+        window.location.href = "processing.html";
+    }
+</script>
+
+</body>
+</html>
