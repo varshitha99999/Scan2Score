@@ -1,0 +1,2 @@
+Image     : my_photo.png
+Roll No.  : 01
