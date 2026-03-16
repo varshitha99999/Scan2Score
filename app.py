@@ -1,19 +1,39 @@
 import os
 import time
 import subprocess
-from flask import Flask, render_template, request, send_file
+import random
+import zipfile
+import io
+from flask import Flask, render_template, request, send_file, session, redirect, url_for
 from werkzeug.utils import secure_filename
 from utils.image_processing import process_image
 import re
 import pythoncom
 import win32com.client
 import shutil
+from fpdf import FPDF
+import copy
 
 app = Flask(__name__)
+app.secret_key = 'scan2score_secret_key_2026'  # Change this to a random secret key in production
 app.config['UPLOAD_FOLDER'] = os.path.abspath('uploads')
 app.config['Result_FOLDER'] = os.path.abspath('results')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['Result_FOLDER'], exist_ok=True)
+
+# User credentials database
+USERS = {
+    # Teachers
+    'teacher@college.com': {'password': 'teacher123', 'type': 'teacher', 'name': 'Dr. Faculty'},
+    'teacher': {'password': 'teacher123', 'type': 'teacher', 'name': 'Dr. Faculty'},
+    'admin': {'password': 'admin123', 'type': 'teacher', 'name': 'Admin Teacher'},
+    'faculty@scan2score.com': {'password': 'faculty123', 'type': 'teacher', 'name': 'Faculty Member'},
+    
+    # Students
+    'student': {'password': 'student123', 'type': 'student', 'name': 'Student User'},
+    'student@scan2score.com': {'password': 'student123', 'type': 'student', 'name': 'John Doe'},
+    '24WH1A0501': {'password': 'student123', 'type': 'student', 'name': 'Student 501'},
+}
 
 def natural_sort_key(s):
     return [int(text) if text.isdigit() else text.lower() for text in re.split('([0-9]+)', s)]
@@ -277,7 +297,75 @@ def update_excel_com_batch(file_path, student_data, exam_type):
 
 @app.route('/')
 def index():
+    return render_template('landing.html')
+
+@app.route('/teacher-login', methods=['GET', 'POST'])
+def teacher_login():
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '').strip()
+        
+        # Check if fields are empty
+        if not email or not password:
+            return render_template('teacher_login.html', error="Please enter all fields")
+        
+        # Check credentials
+        if email in USERS and USERS[email]['password'] == password and USERS[email]['type'] == 'teacher':
+            session['user_id'] = email
+            session['user_type'] = 'teacher'
+            session['user_name'] = USERS[email]['name']
+            return redirect(url_for('teacher'))
+        else:
+            return render_template('teacher_login.html', error="Invalid email or password")
+    
+    return render_template('teacher_login.html')
+
+@app.route('/student-login', methods=['GET', 'POST'])
+def student_login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        # Check credentials
+        if email in USERS and USERS[email]['password'] == password and USERS[email]['type'] == 'student':
+            session['user_id'] = email
+            session['user_type'] = 'student'
+            session['user_name'] = USERS[email]['name']
+            return redirect(url_for('student'))
+        else:
+            return render_template('student_login.html', error="Invalid email/roll number or password")
+    
+    return render_template('student_login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+@app.route('/teacher')
+def teacher():
+    if 'user_type' not in session or session['user_type'] != 'teacher':
+        return redirect(url_for('teacher_login'))
+    return render_template('teacher_dashboard.html')
+
+@app.route('/paper-generation')
+def paper_generation():
+    if 'user_type' not in session or session['user_type'] != 'teacher':
+        return redirect(url_for('teacher_login'))
+    return render_template('generator.html')
+
+@app.route('/paper-correction')
+def paper_correction():
+    if 'user_type' not in session or session['user_type'] != 'teacher':
+        return redirect(url_for('teacher_login'))
     return render_template('index.html')
+
+@app.route('/student')
+def student():
+    if 'user_type' not in session or session['user_type'] != 'student':
+        return redirect(url_for('student_login'))
+    return render_template('student.html')
+
 
 @app.route('/upload', methods=['POST'])
 def upload():
@@ -464,6 +552,38 @@ def upload():
 @app.route('/download/<filename>')
 def download_file(filename):
     return send_file(os.path.join(app.config['Result_FOLDER'], filename), as_attachment=True)
+
+@app.route('/generate', methods=['POST'])
+def generate():
+    """Generate question paper PDFs"""
+    try:
+        from generate_paper_logic import generate_question_papers
+        import zipfile
+        import io
+        
+        # Generate PDFs
+        pdf_files = generate_question_papers(request.form)
+        
+        # Create ZIP file
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for pdf_file in pdf_files:
+                zip_file.write(pdf_file, os.path.basename(pdf_file))
+                os.remove(pdf_file)  # Clean up individual PDFs
+        
+        zip_buffer.seek(0)
+        
+        return send_file(
+            zip_buffer,
+            mimetype='application/zip',
+            as_attachment=True,
+            download_name='Question_Papers.zip'
+        )
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return f"Error generating papers: {str(e)}", 500
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Paper - Scan2Score{% endblock %}
+
+{% block styles %}
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+    h1, h2 { color: #1a73e8; }
+    h1 { text-align: center; margin-bottom: 30px; }
+    .section { margin-bottom: 30px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: 500; }
+    
+    .btn-add { background: #e8f0fe; color: #1a73e8; border: none; padding: 10px 20px; border-radius: 4px; font-weight: 500; transition: background 0.2s; }
+    .btn-add:hover { background: #d2e3fc; }
+    .btn-remove { background: #fce8e6; color: #d93025; margin-left: 10px; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+    .btn-generate { background: #1a73e8; color: white; width: 100%; font-size: 18px; margin-top: 20px; padding: 10px; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-generate:hover { background: #1557b0; }
+    .question-card { background: #fafafa; padding: 15px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #1a73e8; }
+    .match-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 0 auto;">
+    <h1>Question Paper Generator</h1>
+    <form action="/generate" method="POST" onsubmit="return validateForm()">
+        
+        <!-- Header Details -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Header Details</h2>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col"><label>College Name</label><input type="text" class="form-control" name="college_name" value="BVRIT HYDERABAD College of Engineering for Women"></div>
+                <div class="col"><label>Exam Name (Year/Sem/Exam)</label><input type="text" class="form-control" name="exam_name" value="II B.Tech. I Sem., II Mid-Term Examinations, Jan-2024"></div>
+            </div>
+            <div class="row mb-3">
+                <div class="col"><label>Branch</label><input type="text" class="form-control" name="branch" value="CSE & IT"></div>
+                <div class="col"><label>Subject Name</label><input type="text" class="form-control" name="sub_name" value="Computer Oriented Statistical Methods"></div>
+            </div>
+            <div class="row mb-3">
+                <div class="col"><label>Subject Code</label><input type="text" class="form-control" name="sub_code" value="MA303BS"></div>
+                <div class="col"><label>Time</label><input type="text" class="form-control" name="time_duration" value="20 Min."></div>
+                <div class="col"><label>Max Marks</label><input type="text" class="form-control" name="max_marks" value="10"></div>
+            </div>
+            <div class="row mb-3">
+                <div class="col"><label>Number of Sets</label><input type="number" class="form-control" name="num_sets" value="4" min="1" max="10"></div>
+            </div>
+        </div>
+
+        <!-- Section 1: MCQs -->
+        <div class="section">
+            <div class="section-header">
+                <h2>I. Multiple Choice Questions</h2>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label style="margin:0;">Marks per Q:</label>
+                    <input type="number" step="0.5" class="form-control" name="marks_s1" value="0.5" style="width: 80px; display: inline-block;">
+                    <button type="button" class="btn-add" onclick="addMcq()">+ Add MCQ</button>
+                </div>
+            </div>
+            <div id="mcq-container"></div>
+        </div>
+
+        <!-- Section 2: Match the Following -->
+        <div class="section">
+            <div class="section-header">
+                <h2>II. Match the Following</h2>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label style="margin:0;">Marks per Q:</label>
+                    <input type="number" step="0.5" class="form-control" name="marks_s2" value="0.5" style="width: 80px; display: inline-block;">
+                    <button type="button" class="btn-add" onclick="addMatch()">+ Add Match Pair</button>
+                </div>
+            </div>
+            <div id="match-container"></div>
+        </div>
+
+        <!-- Section 3: Fill in the Blanks -->
+        <div class="section">
+            <div class="section-header">
+                <h2>III. Fill in the Blanks</h2>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label style="margin:0;">Marks per Q:</label>
+                    <input type="number" step="0.5" class="form-control" name="marks_s3" value="0.5" style="width: 80px; display: inline-block;">
+                    <button type="button" class="btn-add" onclick="addFill()">+ Add Question</button>
+                </div>
+            </div>
+            <div id="fill-container"></div>
+        </div>
+
+        <button type="submit" class="btn-generate">Generate PDF Question Papers</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let mcqCount = 0;
+    let matchCount = 0;
+    let fillCount = 0;
+
+    function addMcq() {
+        mcqCount++;
+        const div = document.createElement('div');
+        div.className = 'question-card';
+        div.innerHTML = `
+            <div class="form-group">
+                <label>Question ${mcqCount}</label>
+                <input type="text" class="form-control" name="mcq_q[]" required placeholder="Enter Question">
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <input type="text" class="form-control" name="mcq_c[]" required placeholder="Correct Answer">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col"><input type="text" class="form-control" name="mcq_w1[]" required placeholder="Wrong Option 1"></div>
+                <div class="col"><input type="text" class="form-control" name="mcq_w2[]" required placeholder="Wrong Option 2"></div>
+                <div class="col"><input type="text" class="form-control" name="mcq_w3[]" required placeholder="Wrong Option 3"></div>
+            </div>
+            <div style="text-align: right;">
+                <button type="button" class="btn-remove" onclick="this.parentElement.parentElement.remove()">Remove</button>
+            </div>
+        `;
+        document.getElementById('mcq-container').appendChild(div);
+    }
+
+    function addMatch() {
+        matchCount++;
+        const div = document.createElement('div');
+        div.className = 'question-card';
+        div.innerHTML = `
+            <div class="match-row">
+                <div class="col"><input type="text" class="form-control" name="match_left[]" required placeholder="Left Item"></div>
+                <span>➡</span>
+                <div class="col"><input type="text" class="form-control" name="match_right[]" required placeholder="Right Item (Correct Match)"></div>
+                <button type="button" class="btn-remove" onclick="this.parentElement.parentElement.remove()">X</button>
+            </div>
+        `;
+        document.getElementById('match-container').appendChild(div);
+    }
+
+    function addFill() {
+        fillCount++;
+        const div = document.createElement('div');
+        div.className = 'question-card';
+        div.innerHTML = `
+            <div class="form-group">
+                <label>Question ${fillCount}</label>
+                <input type="text" class="form-control" name="fill_q[]" required placeholder="Sentence (e.g., The sun rises in the _____)">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" name="fill_a[]" required placeholder="Correct Answer (e.g., East)">
+            </div>
+            <div style="text-align: right;">
+                <button type="button" class="btn-remove" onclick="this.parentElement.parentElement.remove()">Remove</button>
+            </div>
+        `;
+        document.getElementById('fill-container').appendChild(div);
+    }
+
+    // Add initial empty fields
+    addMcq();
+    addMatch();
+    addFill();
+
+    function validateForm() {
+        return true;
+    }
+</script>
+{% endblock %}

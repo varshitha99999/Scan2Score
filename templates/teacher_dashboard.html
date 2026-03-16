@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary: #8b5cf6;
+            --secondary-hover: #7c3aed;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .dashboard-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            border: 2px solid transparent;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .dashboard-card.generation:hover {
+            border-color: var(--secondary);
+        }
+
+        .dashboard-card.correction:hover {
+            border-color: var(--primary);
+        }
+
+        .icon-wrapper {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card.generation .icon-wrapper {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .dashboard-card.correction .icon-wrapper {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+        }
+
+        .dashboard-card:hover .icon-wrapper {
+            transform: scale(1.15) rotate(-5deg);
+        }
+
+        .dashboard-card h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+
+        .dashboard-card p {
+            font-size: 1rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .features {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            text-align: left;
+            margin-top: 1rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .feature-item i {
+            font-size: 0.8rem;
+        }
+
+        .dashboard-card.generation .feature-item i {
+            color: var(--secondary);
+        }
+
+        .dashboard-card.correction .feature-item i {
+            color: var(--primary);
+        }
+
+        .arrow-icon {
+            margin-top: 1.5rem;
+            font-size: 1.8rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card.generation .arrow-icon {
+            color: var(--secondary);
+        }
+
+        .dashboard-card.correction .arrow-icon {
+            color: var(--primary);
+        }
+
+        .dashboard-card:hover .arrow-icon {
+            opacity: 1;
+            transform: translateX(10px);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .dashboard-container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .back-link {
+                position: static;
+                margin-bottom: 2rem;
+                width: fit-content;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Home
+    </a>
+    
+    <a href="/logout" class="back-link" style="left: auto; right: 20px; background: rgba(239, 68, 68, 0.2);">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        Logout
+    </a>
+
+    <div class="header">
+        <h1><i class="fa-solid fa-chalkboard-user"></i> Teacher Dashboard</h1>
+        <p>Choose your task to get started</p>
+    </div>
+
+    <div class="dashboard-container">
+        <a href="/paper-generation" class="dashboard-card generation">
+            <div class="icon-wrapper">
+                <i class="fa-solid fa-file-pen"></i>
+            </div>
+            <h2>Paper Generation</h2>
+            <p>Create and generate exam papers with customizable templates</p>
+            <div class="features">
+                <div class="feature-item">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Question bank management</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Multiple paper formats</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Auto-generate variants</span>
+                </div>
+            </div>
+            <div class="arrow-icon">
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+        </a>
+
+        <a href="/paper-correction" class="dashboard-card correction">
+            <div class="icon-wrapper">
+                <i class="fa-solid fa-clipboard-check"></i>
+            </div>
+            <h2>Paper Correction</h2>
+            <p>Process answer sheets and update marks automatically</p>
+            <div class="features">
+                <div class="feature-item">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Batch image processing</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Red ink detection</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Excel auto-update</span>
+                </div>
+            </div>
+            <div class="arrow-icon">
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+        </a>
+    </div>
+</body>
+</html>
