@@ -326,8 +326,25 @@ def student_login():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        # Check credentials
-        if email in USERS and USERS[email]['password'] == password and USERS[email]['type'] == 'student':
+        # New authentication: roll@scan.com format with roll number as password
+        if email and email.endswith('@scan.com'):
+            # Extract roll number from email (everything before @scan.com)
+            roll_number = email.replace('@scan.com', '')
+            
+            # Check if password matches the roll number
+            if password == roll_number:
+                # Create full roll number with prefix for session
+                full_roll_number = "23WH1A12" + roll_number
+                session['user_id'] = full_roll_number
+                session['user_type'] = 'student'
+                session['user_name'] = f'Student {roll_number}'
+                session['roll_number'] = roll_number  # Store original roll number
+                return redirect(url_for('student'))
+            else:
+                return render_template('student_login.html', error="Invalid roll number or password")
+        
+        # Fallback to existing user database for backward compatibility
+        elif email in USERS and USERS[email]['password'] == password and USERS[email]['type'] == 'student':
             session['user_id'] = email
             session['user_type'] = 'student'
             session['user_name'] = USERS[email]['name']
@@ -364,39 +381,135 @@ def paper_correction():
 def student():
     if 'user_type' not in session or session['user_type'] != 'student':
         return redirect(url_for('student_login'))
-    return render_template('student.html')
+    
+    # Get student's roll number from session
+    student_roll = session.get('user_id', '')
+    original_roll = session.get('roll_number', '')  # Get original roll number if available
+    
+    # Use original roll number for file matching, fallback to full roll number
+    search_roll = original_roll if original_roll else student_roll
+    
+    # Get papers for this student from uploads folder
+    from utils.student_papers import get_student_papers, format_file_size
+    papers = get_student_papers(search_roll)
+    
+    # Add formatted file size to each paper
+    for paper in papers:
+        paper['formatted_size'] = format_file_size(paper['size'])
+    
+    return render_template('student.html', papers=papers, roll_number=student_roll)
+
+@app.route('/download_paper/<filename>')
+def download_paper(filename):
+    """Download a paper file from uploads folder"""
+    if 'user_type' not in session or session['user_type'] != 'student':
+        return redirect(url_for('student_login'))
+    
+    # Get student's roll number for security check
+    original_roll = session.get('roll_number', '')
+    student_roll = session.get('user_id', '')
+    
+    # Security check: ensure the file belongs to the logged-in student
+    search_roll = original_roll if original_roll else student_roll
+    
+    # Check if filename contains the student's roll number
+    if not (search_roll in filename.lower() or 
+            filename.lower().startswith(f'cor-{search_roll}') or
+            filename.lower().startswith(f'c-{search_roll}')):
+        return "Access denied", 403
+    
+    try:
+        from flask import send_file
+        file_path = os.path.join('uploads', filename)
+        
+        if not os.path.exists(file_path):
+            return "File not found", 404
+        
+        return send_file(file_path, as_attachment=True, download_name=filename)
+    
+    except Exception as e:
+        return f"Error downloading file: {str(e)}", 500
 
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    # Only check for image_files
     if 'image_files' not in request.files:
         return "No file part"
-    
+
     try:
         image_files = request.files.getlist('image_files')
-        
-        # New Inputs
-        start_roll_no = request.form.get('start_roll_no', '').strip()
-        end_roll_no = request.form.get('end_roll_no', '').strip()
-        absentees_str = request.form.get('absentees', '').strip()
-        lateral_str = request.form.get('lateral_entries', '').strip()
-        exam_type = request.form.get('exam_type', 'Objective-1')
-        pages_per_student = int(request.form.get('pages_per_student', 1))
-        
-        if not start_roll_no or not end_roll_no:
-            return "Please provide both Start and End Roll Numbers."
-        
-        # Parse Absentees
-        absentees_set = set()
-        if absentees_str:
-            parts = [x.strip().upper() for x in absentees_str.split(',')]
-            for p in parts:
-                if p:
-                    absentees_set.add(p)
-        
-        # Generate Roll Schedule
-        all_rolls = generate_roll_numbers(start_roll_no, end_roll_no)
+        exam_type   = request.form.get('exam_type', 'Objective-1')
+
+        # Filter valid images
+        valid_images = [img for img in image_files if img.filename != '']
+        if not valid_images:
+            return render_template('index.html', error="Please upload at least one image.")
+
+        # Save uploaded images
+        saved_image_paths = []
+        for img_file in valid_images:
+            img_path = os.path.join(
+                app.config['UPLOAD_FOLDER'], secure_filename(img_file.filename)
+            )
+            img_file.save(img_path)
+            saved_image_paths.append(img_path)
+
+        saved_image_paths.sort(key=lambda x: natural_sort_key(os.path.basename(x)))
+
+        # Prepare output Excel from master template
+        master_template_path = os.path.abspath('master_template.xlsx')
+        if not os.path.exists(master_template_path):
+            return render_template('index.html', error="Master template not found on server.")
+
+        output_filename = f"updated_marks_{int(time.time())}.xlsx"
+        output_path     = os.path.join(app.config['Result_FOLDER'], output_filename)
+        shutil.copy2(master_template_path, output_path)
+
+        # ── Call the fixed batch integration ─────────────────────────────────
+        # process_with_roll_detection now accepts a LIST of images and writes
+        # to Excel in ONE COM session (fast, no corruption risk).
+        # fallback_rolls=None  →  images where detection fails are SKIPPED
+        # (no UNKNOWN_xxx rows are written to Excel).
+        from roll_number_integration import process_with_roll_detection
+
+        result = process_with_roll_detection(
+            image_paths   = saved_image_paths,
+            excel_path    = output_path,
+            exam_type     = exam_type,
+            fallback_rolls= None,        # set to a list if you want fallbacks
+        )
+
+        successful = result["successful"]
+        failed     = result["failed"]
+        skipped    = result["skipped"]
+
+        result_message = (
+            f"Processed {successful} sheet(s) successfully. "
+            f"Failed: {failed}. Skipped (no roll detected): {skipped}."
+        )
+
+        return render_template(
+            'result.html',
+            output_file      = output_filename,
+            total            = result_message,
+            detection_enabled= True,
+            auto_detected    = successful,
+            manual_review    = failed + skipped,
+        )
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return f"""
+        <html>
+        <body style="background-color:white;color:black;padding:20px;font-family:sans-serif;">
+            <h1>Error Processing Files</h1>
+            <p>{str(e)}</p>
+            <pre style="background:#eee;padding:10px;border-radius:5px;">{traceback.format_exc()}</pre>
+            <a href="/paper-correction">Go Back</a>
+        </body>
+        </html>
+        """
         
         # Append Lateral Entries
         if lateral_str:
@@ -549,10 +662,66 @@ def upload():
         </html>
         """
 
+
+
+@app.route('/upload-integrated', methods=['POST'])
+def upload_integrated():
+    """
+    Integrated upload route that connects:
+    - Blue ink roll number detection
+    - Red ink answer correction  
+    - Direct Excel writing by detected roll number
+    """
+    if 'image_files' not in request.files:
+        return "No file part"
+    
+    try:
+        from integrated_correction_system import process_answer_sheets_integrated
+        
+        image_files = request.files.getlist('image_files')
+        exam_type = request.form.get('exam_type', 'Objective-1')
+        
+        # Filter valid images
+        valid_images = [img for img in image_files if img.filename != '']
+        if not valid_images:
+            return render_template('index.html', error="Please upload at least one image.")
+        
+        # Save images
+        saved_image_paths = []
+        for img_file in valid_images:
+            img_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(img_file.filename))
+            img_file.save(img_path)
+            saved_image_paths.append(img_path)
+        
+        # Use master template
+        master_template_path = os.path.abspath('master_template.xlsx')
+        if not os.path.exists(master_template_path):
+            return render_template('index.html', error="Master template not found on server.")
+
+        # Create output file
+        output_filename = f"integrated_results_{int(time.time())}.xlsx"
+        output_path = os.path.join(app.config['Result_FOLDER'], output_filename)
+        shutil.copy2(master_template_path, output_path)
+        
+        # Process with integrated system
+        success = process_answer_sheets_integrated(saved_image_paths, output_path, exam_type)
+        
+        if success:
+            return render_template('result.html', 
+                                   output_file=output_filename,
+                                   total="Integrated processing completed",
+                                   detection_enabled=True)
+        else:
+            return render_template('index.html', error="Processing failed. Check console for details.")
+            
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return f"Error: {str(e)}", 500
+
 @app.route('/download/<filename>')
 def download_file(filename):
     return send_file(os.path.join(app.config['Result_FOLDER'], filename), as_attachment=True)
-
 @app.route('/generate', methods=['POST'])
 def generate():
     """Generate question paper PDFs"""

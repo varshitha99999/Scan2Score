@@ -16,6 +16,7 @@
             --card-bg: #ffffff;
             --text-main: #0f172a;
             --text-muted: #64748b;
+            --border: #e2e8f0;
         }
 
         * {
@@ -32,7 +33,7 @@
         }
 
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
             background: var(--card-bg);
             padding: 2.5rem;
@@ -43,6 +44,8 @@
         header {
             text-align: center;
             margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
         }
 
         header h1 {
@@ -56,26 +59,110 @@
             color: var(--text-muted);
         }
 
-        .coming-soon {
+        .roll-info {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
             text-align: center;
-            padding: 3rem 1rem;
         }
 
-        .coming-soon i {
-            font-size: 5rem;
-            color: var(--primary);
-            margin-bottom: 1.5rem;
+        .roll-info h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
         }
 
-        .coming-soon h2 {
+        .papers-section h2 {
             font-size: 1.5rem;
             color: var(--text-main);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .papers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .paper-card {
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+            background: var(--card-bg);
+        }
+
+        .paper-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .paper-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
             margin-bottom: 1rem;
         }
 
-        .coming-soon p {
+        .paper-info {
+            flex: 1;
+        }
+
+        .paper-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+
+        .paper-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
             color: var(--text-muted);
-            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        .paper-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .download-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .no-papers {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+        }
+
+        .no-papers i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
         }
 
         .back-btn {
@@ -84,7 +171,7 @@
             gap: 8px;
             margin-top: 2rem;
             padding: 0.75rem 1.5rem;
-            background: var(--primary);
+            background: var(--text-muted);
             color: white;
             text-decoration: none;
             border-radius: 10px;
@@ -93,8 +180,24 @@
         }
 
         .back-btn:hover {
-            background: var(--primary-hover);
+            background: var(--text-main);
             transform: translateY(-2px);
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 1.5rem;
+            }
+            
+            .paper-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .paper-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
         }
     </style>
 </head>
@@ -102,18 +205,60 @@
     <div class="container">
         <header>
             <h1><i class="fa-solid fa-user-graduate"></i> Student Portal</h1>
-            <p>View your marks and academic progress</p>
+            <p>View and download your processed answer sheets</p>
         </header>
 
-        <div class="coming-soon">
-            <i class="fa-solid fa-rocket"></i>
-            <h2>Coming Soon!</h2>
-            <p>The student portal is currently under development. Soon you'll be able to view your marks, track your progress, and access your academic records.</p>
-            <a href="/" class="back-btn">
-                <i class="fa-solid fa-arrow-left"></i>
-                Back to Home
-            </a>
+        {% if roll_number %}
+        <div class="roll-info">
+            <h3><i class="fa-solid fa-id-card"></i> Roll Number: {{ roll_number }}</h3>
         </div>
+        {% endif %}
+
+        <div class="papers-section">
+            <h2><i class="fa-solid fa-file-lines"></i> Your Answer Sheets</h2>
+            
+            {% if papers %}
+            <div class="papers-list">
+                {% for paper in papers %}
+                <div class="paper-card">
+                    <div class="paper-header">
+                        <div class="paper-info">
+                            <div class="paper-title">
+                                <i class="fa-solid fa-file-image"></i>
+                                Answer Sheet
+                            </div>
+                            <div class="paper-meta">
+                                <span>
+                                    <i class="fa-solid fa-calendar"></i>
+                                    {{ paper.formatted_date }}
+                                </span>
+                                <span>
+                                    <i class="fa-solid fa-file"></i>
+                                    {{ paper.formatted_size }}
+                                </span>
+                            </div>
+                        </div>
+                        <a href="/download_paper/{{ paper.filename }}" class="download-btn">
+                            <i class="fa-solid fa-download"></i>
+                            Download
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-papers">
+                <i class="fa-solid fa-inbox"></i>
+                <h3>No Answer Sheets Found</h3>
+                <p>Your processed answer sheets will appear here once they are uploaded and processed by your teacher.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <a href="/" class="back-btn">
+            <i class="fa-solid fa-arrow-left"></i>
+            Back to Home
+        </a>
     </div>
 </body>
 </html>

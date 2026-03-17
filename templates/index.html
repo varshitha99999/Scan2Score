@@ -269,10 +269,10 @@
             </div>
 
             <div class="guide-step">
-                <i class="fa-solid fa-id-card"></i>
+                <i class="fa-solid fa-robot"></i>
                 <div>
-                    <p>Roll Range</p>
-                    <p>Enter first and last roll numbers.</p>
+                    <p>AI Roll Detection</p>
+                    <p>System detects roll numbers from blue ink automatically.</p>
                 </div>
             </div>
 
@@ -280,7 +280,7 @@
                 <i class="fa-solid fa-user-slash"></i>
                 <div>
                     <p>Mark Absentees</p>
-                    <p>Type roll numbers separated by comma.</p>
+                    <p>Type roll numbers separated by comma (optional).</p>
                 </div>
             </div>
 
@@ -288,15 +288,15 @@
                 <i class="fa-solid fa-cloud-arrow-up"></i>
                 <div>
                     <p>Upload Images</p>
-                    <p>Upload ONLY present student sheets.</p>
+                    <p>Upload any number of answer sheets.</p>
                 </div>
             </div>
 
             <div class="guide-step" style="background: #fff; padding: 10px; border-radius: 10px; border: 1px dashed var(--accent); margin-top: 1rem;">
                 <i class="fa-solid fa-lightbulb" style="color: var(--accent);"></i>
                 <div>
-                    <p style="color: var(--accent);">Pro Tip</p>
-                    <p>Rename files to <strong>RollNo.jpg</strong> to upload in any order!</p>
+                    <p style="color: var(--accent);">Auto Processing</p>
+                    <p>No need to specify roll ranges - system processes all uploaded sheets!</p>
                 </div>
             </div>
         </aside>
@@ -338,16 +338,6 @@
                     <div class="step-title-inline"><i class="fa-solid fa-users"></i> Students</div>
 
                     <div class="form-group">
-                        <label for="start_roll_no">Starting Roll No</label>
-                        <input type="text" name="start_roll_no" id="start_roll_no" placeholder="e.g. 24WH1A0501" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="end_roll_no">Ending Roll No</label>
-                        <input type="text" name="end_roll_no" id="end_roll_no" placeholder="e.g. 24WH1A0560" required>
-                    </div>
-
-                    <div class="form-group">
                         <label for="lateral_entries">Lateral Entry (Optional)</label>
                         <input type="text" name="lateral_entries" id="lateral_entries" placeholder="25WH5A0501, ...">
                     </div>
@@ -355,6 +345,13 @@
                     <div class="form-group">
                         <label for="absentees">Absentees (Optional)</label>
                         <input type="text" name="absentees" id="absentees" placeholder="24WH1A0504, ...">
+                    </div>
+
+                    <div class="form-group full-width" style="display: flex; align-items: center; gap: 10px; background: #e8f5e8; padding: 10px; border-radius: 8px; border: 1px solid #c3e6c3;">
+                        <input type="checkbox" name="use_roll_detection" id="use_roll_detection" checked style="width: auto;">
+                        <label for="use_roll_detection" style="margin-bottom: 0; color: #2d5a2d; font-size: 0.8rem;">
+                            <strong>🤖 AI Roll Number Detection:</strong> Automatically detect handwritten roll numbers from blue ink (recommended).
+                        </label>
                     </div>
 
                     <div class="form-group full-width" style="display: flex; align-items: center; gap: 10px; background: #fffbeb; padding: 10px; border-radius: 8px; border: 1px solid #fef3c7;">

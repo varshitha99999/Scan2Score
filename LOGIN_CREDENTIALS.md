@@ -25,7 +25,34 @@
 
 ## Student Login Credentials
 
-### Option 1:
+### New Authentication System:
+- **Email Format**: `{roll_number}@scan.com`
+- **Password**: The roll number itself
+
+### Examples:
+- **Roll Number 01**: 
+  - Email: `01@scan.com`
+  - Password: `01`
+
+- **Roll Number 02**: 
+  - Email: `02@scan.com` 
+  - Password: `02`
+
+- **Roll Number 123**: 
+  - Email: `123@scan.com`
+  - Password: `123`
+
+### How it works:
+1. Student enters `{roll}@scan.com` as email
+2. Student enters `{roll}` as password  
+3. System validates that password matches the roll number from email
+4. Shows papers from uploads folder that match the roll number
+
+### File Matching:
+Students will see files that contain their roll number:
+- `cor-01.png` → Shown to roll number `01`
+- `COR-02.png` → Shown to roll number `02`  
+- `c-1.jpeg` → Shown to roll number `1`
 - **Email:** student@scan2score.com
 - **Password:** student123
 

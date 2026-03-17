@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Review Required - Scan2Score</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-hover: #1d4ed8;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.4;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: var(--primary-light);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #dbeafe;
+        }
+
+        .summary-card h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .review-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .review-item {
+            background: #fff;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .review-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .image-name {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 1.1rem;
+        }
+
+        .confidence-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .confidence-high {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .confidence-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .confidence-low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .detection-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-group {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .error-detected {
+            color: var(--error);
+        }
+
+        .errors-list {
+            margin-bottom: 1rem;
+        }
+
+        .error-item {
+            background: #fef2f2;
+            border-left: 4px solid var(--error);
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #991b1b;
+        }
+
+        .suggestions-list {
+            margin-bottom: 1rem;
+        }
+
+        .suggestion-item {
+            background: #f0f9ff;
+            border-left: 4px solid var(--primary);
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #1e40af;
+        }
+
+        .correction-form {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .correction-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .correction-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-correct {
+            padding: 0.75rem 1.5rem;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-correct:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .btn-skip {
+            padding: 0.75rem 1.5rem;
+            background: var(--text-muted);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-skip:hover {
+            background: #374151;
+        }
+
+        .actions {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border);
+        }
+
+        .btn-primary {
+            padding: 1rem 2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 0 0.5rem;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            padding: 1rem 2rem;
+            background: transparent;
+            color: var(--text-muted);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 0 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fa-solid fa-magnifying-glass"></i> Manual Review Required</h1>
+            <p>Some roll numbers need manual verification before processing</p>
+        </div>
+
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h3>{{ auto_processed }}</h3>
+                <p>Auto Processed</p>
+            </div>
+            <div class="summary-card">
+                <h3>{{ detections|length }}</h3>
+                <p>Need Review</p>
+            </div>
+            <div class="summary-card">
+                <h3>{{ total_images }}</h3>
+                <p>Total Images</p>
+            </div>
+        </div>
+
+        <form action="/manual-review-submit" method="POST">
+            <div class="review-grid">
+                {% for detection in detections %}
+                <div class="review-item">
+                    <div class="review-header">
+                        <div class="image-name">
+                            <i class="fa-solid fa-image"></i> {{ detection.image_path }}
+                        </div>
+                        <div class="confidence-badge {% if detection.confidence > 0.8 %}confidence-high{% elif detection.confidence > 0.5 %}confidence-medium{% else %}confidence-low{% endif %}">
+                            {{ "%.1f"|format(detection.confidence * 100) }}% confidence
+                        </div>
+                    </div>
+
+                    <div class="detection-info">
+                        <div class="info-group">
+                            <div class="info-label">Detected Roll Number</div>
+                            <div class="info-value {% if detection.detected_roll == 'ERROR' or detection.detected_roll == 'NOT_FOUND' %}error-detected{% endif %}">
+                                {{ detection.detected_roll }}
+                            </div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">Marks Detected</div>
+                            <div class="info-value">
+                                {{ detection.marks_map|length }} questions
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if detection.validation_errors %}
+                    <div class="errors-list">
+                        <div class="info-label">Issues Found</div>
+                        {% for error in detection.validation_errors %}
+                        <div class="error-item">
+                            <i class="fa-solid fa-triangle-exclamation"></i> {{ error }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if detection.suggestions %}
+                    <div class="suggestions-list">
+                        <div class="info-label">Suggestions</div>
+                        {% for suggestion in detection.suggestions %}
+                        <div class="suggestion-item">
+                            <i class="fa-solid fa-lightbulb"></i> {{ suggestion }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="correction-form">
+                        <input type="text" 
+                               class="correction-input" 
+                               name="corrected_roll_{{ loop.index0 }}" 
+                               placeholder="Enter correct roll number (e.g., 23WH1A1253)"
+                               value="{% if detection.detected_roll not in ['ERROR', 'NOT_FOUND'] %}{{ detection.detected_roll }}{% endif %}">
+                        <input type="hidden" name="image_path_{{ loop.index0 }}" value="{{ detection.image_path }}">
+                        <input type="hidden" name="marks_data_{{ loop.index0 }}" value="{{ detection.marks_map|tojson }}">
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <input type="hidden" name="total_items" value="{{ detections|length }}">
+
+            <div class="actions">
+                <button type="submit" class="btn-primary">
+                    <i class="fa-solid fa-check"></i> Process with Corrections
+                </button>
+                <a href="/paper-correction" class="btn-secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Cancel & Go Back
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Auto-focus first input
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstInput = document.querySelector('.correction-input');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        });
+
+        // Enter key navigation
+        document.querySelectorAll('.correction-input').forEach((input, index, inputs) => {
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    } else {
+                        document.querySelector('.btn-primary').click();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
