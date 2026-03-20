@@ -1,34 +1,108 @@
 import random
 import copy
 from fpdf import FPDF
+import os
 
 class QuestionPaperPDF(FPDF):
     def __init__(self, header_data):
         super().__init__()
         self.header_data = header_data
-        
+        self.set_margins(20, 20, 20)
+        self.set_auto_page_break(True, margin=15)
+
     def header(self):
+        # Top Line (Code/Set) appears on ALL pages
+        self.set_font('Times', 'B', 12) 
+        self.cell(0, 5, f"Code No: {self.header_data.get('sub_code', '')}", 0, 0, 'L')
+        self.cell(0, 5, f"Set No. {self.header_data.get('set_no', '1')}", 0, 1, 'R')
+        
+        # Only print full college details on Page 1
         if self.page_no() == 1:
-            # College Name
+            # Save Y position after top line
+            y_after_top = self.get_y()
+            
+            # Logo - Enhanced path resolution
+            logo_path = None
+            current_dir = os.getcwd()
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            
+            # Check multiple possible locations for logo
+            possible_logo_paths = [
+                # Relative to current working directory
+                'static/logo.jpg',
+                'static/logo.png',
+                'question-paper-folder/static/logo.jpg',
+                'question-paper-folder/static/logo.png',
+                'logo.jpg',
+                'logo.png',
+                # Relative to script directory
+                os.path.join(script_dir, 'static', 'logo.jpg'),
+                os.path.join(script_dir, 'static', 'logo.png'),
+                os.path.join(script_dir, 'question-paper-folder', 'static', 'logo.jpg'),
+                os.path.join(script_dir, 'question-paper-folder', 'static', 'logo.png'),
+                # Absolute paths
+                os.path.join(current_dir, 'static', 'logo.jpg'),
+                os.path.join(current_dir, 'static', 'logo.png'),
+                os.path.join(current_dir, 'question-paper-folder', 'static', 'logo.jpg'),
+                os.path.join(current_dir, 'question-paper-folder', 'static', 'logo.png')
+            ]
+            
+            print(f"Current working directory: {current_dir}")
+            print(f"Script directory: {script_dir}")
+            
+            for path in possible_logo_paths:
+                if os.path.exists(path):
+                    logo_path = path
+                    print(f"✓ Logo found at: {path}")
+                    break
+            
+            if not logo_path:
+                print("✗ Logo not found in any of the expected locations:")
+                for path in possible_logo_paths[:6]:  # Show first 6 paths to avoid clutter
+                    exists = os.path.exists(path)
+                    print(f"  - {path}: {'EXISTS' if exists else 'NOT FOUND'}")
+                print("  ... (and other locations)")
+                
+            if logo_path:
+                try:
+                    # Verify file exists and is readable
+                    if os.path.isfile(logo_path) and os.access(logo_path, os.R_OK):
+                        self.image(logo_path, 20, y_after_top + 2, 25)
+                        print(f"✓ Logo successfully added from: {logo_path}")
+                    else:
+                        print(f"✗ Logo file not accessible: {logo_path}")
+                except Exception as e:
+                    print(f"✗ Error adding logo from {logo_path}: {e}")
+            else:
+                print("ℹ No logo will be added to the question paper") 
+            
+            self.set_y(y_after_top + 2) 
+            
             self.set_font('Times', 'B', 14)
             self.cell(0, 6, self.header_data.get('college_name', ''), 0, 1, 'C')
             
-            # Exam Details
-            self.set_font('Times', '', 10)
+            self.set_font('Times', '', 11)
+            self.cell(0, 5, "(Autonomous)", 0, 1, 'C')
+            
+            self.set_font('Times', 'B', 11)
             self.cell(0, 5, self.header_data.get('exam_name', ''), 0, 1, 'C')
             
-            # Branch and Subject
-            self.set_font('Times', 'B', 11)
-            branch_text = f"Branch: {self.header_data.get('branch', '')}"
-            self.cell(0, 5, branch_text, 0, 1, 'C')
+            self.cell(0, 5, self.header_data.get('sub_name', ''), 0, 1, 'C')
             
-            sub_text = f"Subject: {self.header_data.get('sub_name', '')} ({self.header_data.get('sub_code', '')})"
-            self.cell(0, 5, sub_text, 0, 1, 'C')
+            if self.header_data.get('branch'):
+                 self.cell(0, 5, f"({self.header_data.get('branch')})", 0, 1, 'C')
             
-            # Set Code
+            self.ln(1)
             self.set_font('Times', 'B', 12)
-            self.cell(0, 6, f"Set Code: {self.header_data.get('set_code', 'A')}", 0, 1, 'C')
-            self.ln(3)
+            self.cell(0, 5, "Objective Exam", 0, 1, 'C')
+            
+            # Ensure we are below the logo
+            current_y = self.get_y()
+            min_y_below_logo = y_after_top + 28
+            if current_y < min_y_below_logo:
+                self.set_y(min_y_below_logo)
+            else:
+                self.ln(5)
             
             # Student Details
             self.set_font('Times', 'B', 11)
@@ -46,20 +120,24 @@ class QuestionPaperPDF(FPDF):
             box_h = 8
             for i in range(10):
                 self.rect(x_boxes + (i*box_w), y, box_w, box_h)
-            
             self.ln(10)
+            
             self.set_font('Times', 'B', 10)
-            time_marks = f"Answer All Questions. All Questions Carry Equal Marks. Time: {self.header_data.get('time_duration', '20 Min.')} Marks: {self.header_data.get('max_marks', '10')}."
-            self.cell(0, 5, time_marks, 0, 1, 'C')
+            self.cell(0, 5, f"Answer All Questions. All Questions Carry Equal Marks. Time: {self.header_data.get('time_duration', '20 Min.')} Marks: {self.header_data.get('max_marks', '10')}.", 0, 1, 'C')
             self.ln(5)
         else:
+            # On subsequent pages, just add a little spacing
             self.ln(10)
-    
+
     def footer(self):
         self.set_y(-15)
         self.set_font('Arial', 'I', 8)
         if self.page_no() == 1:
             self.cell(0, 10, 'Cont......2', 0, 0, 'R')
+        else:
+            # Standard page number or nothing on last page if desired
+            # self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
+            pass
 
 def clean_text(text):
     """Clean text for Latin-1 encoding"""

@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 def create_master_template():
-    columns = ["S.No.", "Roll No.", "Set No."] + [f"Q{i}" for i in range(1, 21)] + ["Objective Total"]
+    columns = ["S.No.", "Roll No."] + [f"Q{i}" for i in range(1, 21)] + ["Objective Total"]
     
     # Create a writer
     with pd.ExcelWriter("master_template.xlsx", engine='openpyxl') as writer:

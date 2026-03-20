@@ -5,12 +5,15 @@
 {% block styles %}
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
+    /* Scoped styles or overrides */
     h1, h2 { color: #1a73e8; }
     h1 { text-align: center; margin-bottom: 30px; }
     .section { margin-bottom: 30px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; }
     .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
     .form-group { margin-bottom: 15px; }
     label { display: block; margin-bottom: 5px; font-weight: 500; }
+    /* Use specific class to avoid messing up Bootstrap */
+    .custom-input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
     
     .btn-add { background: #e8f0fe; color: #1a73e8; border: none; padding: 10px 20px; border-radius: 4px; font-weight: 500; transition: background 0.2s; }
     .btn-add:hover { background: #d2e3fc; }
@@ -108,23 +111,81 @@
         div.innerHTML = `
             <div class="form-group">
                 <label>Question ${mcqCount}</label>
-                <input type="text" class="form-control" name="mcq_q[]" required placeholder="Enter Question">
+                <input type="text" class="form-control" name="mcq_q[]" id="q_${mcqCount}" required placeholder="Enter Question">
             </div>
-            <div class="row mb-3">
+            <div class="row mb-3" style="align-items: flex-end;">
                 <div class="col">
-                    <input type="text" class="form-control" name="mcq_c[]" required placeholder="Correct Answer">
+                    <input type="text" class="form-control" name="mcq_c[]" id="c_${mcqCount}" required placeholder="Correct Answer">
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn-add" style="font-size: 14px;" onclick="generateDistractors(${mcqCount})">✨ Auto Options</button>
                 </div>
             </div>
             <div class="row mb-3">
-                <div class="col"><input type="text" class="form-control" name="mcq_w1[]" required placeholder="Wrong Option 1"></div>
-                <div class="col"><input type="text" class="form-control" name="mcq_w2[]" required placeholder="Wrong Option 2"></div>
-                <div class="col"><input type="text" class="form-control" name="mcq_w3[]" required placeholder="Wrong Option 3"></div>
+                <div class="col"><input type="text" class="form-control" name="mcq_w1[]" id="w1_${mcqCount}" required placeholder="Wrong Option 1"></div>
+                <div class="col"><input type="text" class="form-control" name="mcq_w2[]" id="w2_${mcqCount}" required placeholder="Wrong Option 2"></div>
+                <div class="col"><input type="text" class="form-control" name="mcq_w3[]" id="w3_${mcqCount}" required placeholder="Wrong Option 3"></div>
             </div>
             <div style="text-align: right;">
                 <button type="button" class="btn-remove" onclick="this.parentElement.parentElement.remove()">Remove</button>
             </div>
         `;
         document.getElementById('mcq-container').appendChild(div);
+    }
+
+    async function generateDistractors(id) {
+        const question = document.getElementById(`q_${id}`).value;
+        const correctInput = document.getElementById(`c_${id}`);
+        const correct = correctInput.value;
+        
+        if (!question) {
+            alert("Please enter a Question first.");
+            return;
+        }
+
+        if (!correct) {
+            alert("Please enter the Correct Answer first.");
+            return;
+        }
+
+        const btn = event.target;
+        const originalText = btn.innerText;
+        btn.innerText = "Generating...";
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/generate_distractors', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    question: question,
+                    correct_answer: correct
+                })
+            });
+            
+            const data = await response.json();
+            if (data.error) {
+                alert("Error: " + data.error);
+            } else {
+                // Update correct answer if generated
+                if (data.correct_answer) {
+                    correctInput.value = data.correct_answer;
+                }
+                
+                // Fill distractors
+                if (data.distractors.length >= 1) document.getElementById(`w1_${id}`).value = data.distractors[0];
+                if (data.distractors.length >= 2) document.getElementById(`w2_${id}`).value = data.distractors[1];
+                if (data.distractors.length >= 3) document.getElementById(`w3_${id}`).value = data.distractors[2];
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Failed to generate options.");
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
     }
 
     function addMatch() {
@@ -167,6 +228,55 @@
     addFill();
 
     function validateForm() {
+        const questions = [];
+        
+        // Collect MCQs
+        const mcqInputs = document.getElementsByName('mcq_q[]');
+        for (let i = 0; i < mcqInputs.length; i++) {
+            const val = mcqInputs[i].value.trim();
+            if (val) questions.push({ text: val.toLowerCase(), label: `MCQ Q${i + 1}` });
+        }
+
+        // Collect Matches (Left side is usually the question/prompt)
+        const matchInputs = document.getElementsByName('match_left[]');
+        for (let i = 0; i < matchInputs.length; i++) {
+            const val = matchInputs[i].value.trim();
+            if (val) questions.push({ text: val.toLowerCase(), label: `Match Pair ${i + 1}` });
+        }
+
+        // Collect Fill in Blanks
+        const fillInputs = document.getElementsByName('fill_q[]');
+        for (let i = 0; i < fillInputs.length; i++) {
+            const val = fillInputs[i].value.trim();
+            if (val) questions.push({ text: val.toLowerCase(), label: `Fill Blank Q${i + 1}` });
+        }
+
+        const seen = new Map(); // text -> [labels]
+
+        for (const q of questions) {
+            if (seen.has(q.text)) {
+                seen.get(q.text).push(q.label);
+            } else {
+                seen.set(q.text, [q.label]);
+            }
+        }
+
+        const duplicates = [];
+        for (const [text, labels] of seen) {
+            if (labels.length > 1) {
+                // Find the original text for display (just take the first match loosely)
+                // We'll just show the normalized text or a truncated version
+                duplicates.push(`- "${text.substring(0, 50)}${text.length>50?'...':''}"\n  (Found in: ${labels.join(', ')})`);
+            }
+        }
+
+        if (duplicates.length > 0) {
+            const msg = "⚠️ Warning: Redundant Questions Found!\n\nThe following questions appear multiple times:\n\n" + 
+                        duplicates.join('\n\n') + 
+                        "\n\nDo you want to proceed anyway?";
+            return confirm(msg);
+        }
+
         return true;
     }
 </script>

@@ -5,11 +5,20 @@ Integrates the original digitrec files for 100% accurate roll number detection
 """
 import cv2
 import numpy as np
-import tensorflow as tf
 from typing import List, Tuple, Optional
 import os
 import sys
 from PIL import Image, ImageFilter
+
+# Safe TensorFlow import with error handling
+try:
+    import tensorflow as tf
+    TF_AVAILABLE = True
+    print("✅ TensorFlow loaded successfully")
+except ImportError as e:
+    tf = None
+    TF_AVAILABLE = False
+    print(f"Warning: TensorFlow not available: {e}")
 
 # Add the root directory to path to import the original files
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -20,7 +29,12 @@ class EnhancedRollDetector:
     def __init__(self, model_path: str = "models/digit_recognizer.keras"):
         self.model_path = model_path
         self.model = None
-        self._load_model()
+        self.tf_available = TF_AVAILABLE
+        
+        if self.tf_available:
+            self._load_model()
+        else:
+            print("⚠️ TensorFlow not available - roll number detection will be disabled")
         
         # Configuration from original digitrec
         self.TOP_CROP_FRACTION = 0.18
@@ -33,6 +47,10 @@ class EnhancedRollDetector:
     def _load_model(self):
         """Load the trained CNN model"""
         try:
+            if not self.tf_available:
+                print("❌ TensorFlow not available - cannot load model")
+                return
+                
             if os.path.exists(self.model_path):
                 self.model = tf.keras.models.load_model(self.model_path)
                 print(f"✅ Loaded CNN model from {self.model_path}")
@@ -47,8 +65,9 @@ class EnhancedRollDetector:
         """
         Recognize roll number using original digitrec algorithm
         """
-        if self.model is None:
-            return "ERROR"
+        if not self.tf_available or self.model is None:
+            print("⚠️ TensorFlow/Model not available - returning UNKNOWN")
+            return "UNKNOWN"
         
         try:
             # Load image

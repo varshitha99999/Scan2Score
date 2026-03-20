@@ -5,7 +5,7 @@ import os
 
 def create_dummy_data():
     # 1. Create Dummy Excel
-    columns = ["S.No.", "Roll No.", "Set No."] + [f"Q{i}" for i in range(1, 21)] + ["Objective Total"]
+    columns = ["S.No.", "Roll No."] + [f"Q{i}" for i in range(1, 21)] + ["Objective Total"]
     df = pd.DataFrame(columns=columns)
     df.to_excel("test_template.xlsx", index=False)
     print("Created test_template.xlsx")
